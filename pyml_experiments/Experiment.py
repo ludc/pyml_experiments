@@ -21,7 +21,7 @@ class Experiment(object):
 
     def new_iteration(self):
         if (len(self.values)>0):
-            self.writer.write(self.iteration,self.values)
+            self.writer.write(self.values)
 
         self.iteration+=1
         self.values={}
