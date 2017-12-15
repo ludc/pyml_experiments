@@ -2,13 +2,11 @@ import datetime
 
 class Experiment(object):
 
-    def __init__(self,name="",arguments={},writer=None):
+    def __init__(self,arguments={},writer=None):
         '''
         Create a new experiment given a name (string) and a set of arguments (dict)
-        :param name:
         :param arguments:
         '''
-        self.name=name
         self.arguments=arguments
         self.error_msg=None
         self.iteration=0
@@ -16,7 +14,7 @@ class Experiment(object):
         self.current_scope=[]
 
         self.writer=writer
-        self.writer.begin(experiment_name=name,arguments=arguments)
+        self.writer.begin(arguments=arguments)
 
     def new_iteration(self):
         if (len(self.values)>0):

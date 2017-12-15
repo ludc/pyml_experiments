@@ -4,7 +4,7 @@ import datetime
 import sys
 
 class Writer(object):
-    def begin(self,experiment_name,arguments):
+    def begin(self,arguments):
         raise NotImplementedError
 
     def write(self,values):
@@ -32,9 +32,9 @@ class WriterWrapper(object):
         self.w1=writer1
         self.w2=writer2
 
-    def begin(self,experiment_name,arguments):
-        self.w1.begin(experiment_name,arguments)
-        self.w2.begin(experiment_name,arguments)
+    def begin(self,arguments):
+        self.w1.begin(arguments)
+        self.w2.begin(arguments)
 
     def write(self,values):
         self.w1.write(values)
@@ -54,8 +54,7 @@ class StdoutWriter(Writer):
         self._id=None
         self._values=[]
 
-    def begin(self,experiment_name,arguments):
-        logging.info("Starting experiment '%s'"%experiment_name)
+    def begin(self,arguments):
         logging.info(str(arguments))
 
 
@@ -69,13 +68,14 @@ class StdoutWriter(Writer):
         logging.error(msg)
 
 class Sqlite3Writer(Writer):
-    def __init__(self,db_file,update_every=1000,separator="."):
+    def __init__(self,db_file,update_every=10,separator="."):
         Writer.__init__(self)
         logging.info("Opening Sqlite3 DB : "+db_file)
         self.db=sqlite3.connect(db_file)
         self.update_every=update_every
         self._values=[]
         self.sep=separator
+        self._iteration=0
 
     def _flatten(self,values,separator='.'):
         retour={}
@@ -175,8 +175,7 @@ class Sqlite3Writer(Writer):
         self.db.execute(query)
         self.db.commit()
 
-
-    def begin(self,experiment_name,arguments):
+    def begin(self,arguments):
         #1: Check if tables exists
         if (not self._table_exists("experiments")):
             self._create_experiments_table(arguments)
@@ -208,6 +207,7 @@ class Sqlite3Writer(Writer):
         for k1,k2 in kk:
             kkk.append("'"+str(k1)+"' "+str(k2))
         kkk.append("_id INTEGER")
+        kkk.append("_iteration INTEGER")
         query="create table logs (%s)"%(",".join(kkk))
         self.db.execute(query)
 
@@ -229,6 +229,7 @@ class Sqlite3Writer(Writer):
         if (not self._table_exists("logs")):
             self._create_logs_table()
         self._alter_logs_table()
+        pos=0
         for v in self._values:
             keys = []
             vals=[]
@@ -240,12 +241,16 @@ class Sqlite3Writer(Writer):
                 keys.append("'%s'"%k)
             vals.append(str(self._id))
             keys.append("_id")
+            vals.append(str(self._iteration-len(self._values)+pos))
+            keys.append("_iteration")
+            pos+=1
 
             query="insert into logs (%s) values (%s)"%(",".join(keys),",".join(vals))
             self.db.execute(query)
         self.db.commit()
 
     def write(self,values):
+        self._iteration+=1
         self._values.append(self._flatten(values,separator=self.sep))
         if (len(self._values)==self.update_every):
             self._flush_values()
