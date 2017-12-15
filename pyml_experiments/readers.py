@@ -22,6 +22,10 @@ class Sqlite3Reader(Reader):
 
 
     def read_experiments(self):
+        '''
+        Returns the list of experiments + corresponding id {id->{arguments}}
+        :return:
+        '''
         query = "select * from experiments"
         c = self.db.execute(query)
         columns = []
@@ -46,6 +50,10 @@ class Sqlite3Reader(Reader):
         return logs
 
     def read_log(self,id_experiment):
+        '''
+        Returns the values of the log knowing the log index. The return is a table of dict
+        :return:
+        '''
         query="select * from logs where _id=%d"%id_experiment
         c = self.db.execute(query)
         columns = []
@@ -70,6 +78,11 @@ class Sqlite3Reader(Reader):
         return retour
 
     def filter_experiments(self,filter={}):
+        '''
+        Return the indexes of the experiments that are OK with the given filter
+        :param filter:
+        :return:
+        '''
         def _match(doc,fil):
             if (type(doc)==dict):
                 for k in fil:
@@ -95,6 +108,7 @@ class Sqlite3Reader(Reader):
         only keep particular fields in the log
         :param id_experiment:
         :param filter:
+        :param columns: a dict containing the key/value of the log to filter
         :return:
         '''
         def _build(log,filter):
