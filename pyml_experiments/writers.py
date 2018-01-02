@@ -175,7 +175,7 @@ class Sqlite3Writer(Writer):
                 args.append("'%s'"%arguments[k])
             else:
                 args.append(str(arguments[k])   )
-
+        logging.info("Creating experiment with ID = %d"%self._id)
         query="insert into experiments(%s) values (%s)"%(",".join(att),",".join(args))
         newconn.execute(query)
         newconn.commit()
