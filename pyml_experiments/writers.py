@@ -72,6 +72,7 @@ class Sqlite3Writer(Writer):
         Writer.__init__(self)
         logging.info("Opening Sqlite3 DB : "+db_file)
         self.db=sqlite3.connect(db_file)
+        self.db_file=db_file
         self.update_every=update_every
         self._values=[]
         self.sep=separator
@@ -155,8 +156,12 @@ class Sqlite3Writer(Writer):
         arguments["_state"]="running"
         arguments["_error_msg"]=""
 
+        newconn=sqlite3.connect(self.db_file)
+        newconn.isolation_level = 'EXCLUSIVE'
+        newconn.execute('BEGIN EXCLUSIVE')
+
         query="select max(_id) from experiments"
-        value=self.db.execute(query).fetchone()
+        value=newconn.execute(query).fetchone()
         if (value[0] is None):
             self._id=0
         else:
@@ -172,8 +177,9 @@ class Sqlite3Writer(Writer):
                 args.append(str(arguments[k])   )
 
         query="insert into experiments(%s) values (%s)"%(",".join(att),",".join(args))
-        self.db.execute(query)
-        self.db.commit()
+        newconn.execute(query)
+        newconn.commit()
+        newconn.close()
 
     def begin(self,arguments):
         #1: Check if tables exists
