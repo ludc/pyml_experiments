@@ -21,12 +21,14 @@ class Sqlite3Reader(Reader):
         self.sep=separator
 
 
-    def read_experiments(self):
+    def read_experiments(self,only_done=False):
         '''
         Returns the list of experiments + corresponding id {id->{arguments}}
         :return:
         '''
         query = "select * from experiments"
+        if (only_done):
+            query+=" where _state=\"done\"";
         c = self.db.execute(query)
         columns = []
         for k in c.description:
@@ -144,7 +146,7 @@ class Sqlite3Reader(Reader):
                 retour[k]=values[k]
         return retour
 
-    def to_pandas(self,filter_experiments={},columns=None):
+    def to_pandas(self,filter_experiments={},,only_done=False,columns=None):
         all_lines=[]
         all_exps=self.read_experiments()
         exps=self.filter_experiments(filter_experiments)
