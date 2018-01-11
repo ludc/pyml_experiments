@@ -146,7 +146,7 @@ class Sqlite3Reader(Reader):
                 retour[k]=values[k]
         return retour
 
-    def to_pandas(self,filter_experiments={},,only_done=False,columns=None):
+    def to_pandas(self,filter_experiments={},only_done=False,columns=None):
         all_lines=[]
         all_exps=self.read_experiments()
         exps=self.filter_experiments(filter_experiments)
