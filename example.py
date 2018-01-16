@@ -1,5 +1,5 @@
 from pyml_experiments import Experiment
-from pyml_experiments.writers import StdoutWriter,Sqlite3Writer
+from pyml_experiments.writers import StdoutWriter,Sqlite3Writer,MySqlWriter
 import logging
 
 logging.basicConfig(level=logging.DEBUG)
@@ -8,7 +8,9 @@ arguments={"dataset":"mnist","learning_rate":0.01}
 device_id={"mon_id":"Android","details":{"ou":3}}
 writer=StdoutWriter()
 writer=Sqlite3Writer('test.db')
-log=Experiment(name=name,arguments=arguments,device_id=device_id,writer=writer)
+
+
+log=Experiment(arguments=arguments,writer=writer)
 
 for i  in range(100):
     log.new_iteration()
