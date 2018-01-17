@@ -1,14 +1,13 @@
 from pyml_experiments import Experiment
-from pyml_experiments.writers import StdoutWriter,Sqlite3Writer,MySqlWriter
-from pyml_experiments.readers import Sqlite3Reader, MySqlReader
+from pyml_experiments.writers import StdoutWriter,Sqlite3Writer,WriterWrapper
+from pyml_experiments.readers import Sqlite3Reader
 import logging
 
 logging.basicConfig(level=logging.DEBUG)
 name="Test Experiment"
 arguments={"dataset":"mnist","learning_rate":0.01}
 device_id={"mon_id":"Android","details":{"ou":3}}
-writer=StdoutWriter()
-writer=Sqlite3Writer('test.db')
+writer = WriterWrapper(StdoutWriter(), Sqlite3Writer('test.db'))
 
 log=Experiment(arguments=arguments,writer=writer)
 
@@ -23,7 +22,7 @@ for i  in range(100):
     log.add_value("accuracy",i/1000.0)
     log.pop_scope()
     log.pop_scope()
-    if (i%10==0):
+    if (i%10 == 0):
         log.push_scope("test")
         log.add_value("coucou",i*5)
         log.pop_scope()

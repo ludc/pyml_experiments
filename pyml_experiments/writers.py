@@ -27,26 +27,30 @@ class Writer(object):
                 r[k]=dic[k]
         return r
 
+
 class WriterWrapper(object):
-    def __init__(self,writer1,writer2):
-        self.w1=writer1
-        self.w2=writer2
+    def __init__(self, *writers):
+        self.writers = writers
 
-    def begin(self,arguments):
-        self.w1.begin(arguments)
-        self.w2.begin(arguments)
+    def begin(self, arguments):
+        for writer in self.writers:
+            writer.begin(arguments)
 
-    def write(self,values):
-        self.w1.write(values)
-        self.w2.write(values)
+    def write(self, values):
+        for writer in self.writers:
+            writer.write(values)
 
     def exit(self):
-        self.w1.exit()
-        self.w2.exit()
+        for i, writer in enumerate(self.writers):
+            try:
+                writer.exit()
+            except Exception as e:
+                print("Error while exiting writer {}".format(i))
 
-    def error(self,msg):
-        self.w1.error(msg)
-        self.w2.error(msg)
+    def error(self, msg):
+        for writer in self.writers:
+            writer.error(msg)
+
 
 class StdoutWriter(Writer):
     def __init__(self):
