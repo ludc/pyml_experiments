@@ -8,7 +8,6 @@ arguments={"dataset":"mnist","learning_rate":0.01}
 device_id={"mon_id":"Android","details":{"ou":3}}
 writer = WriterWrapper(StdoutWriter(), Sqlite3Writer('test.db'))
 
-
 log=Experiment(arguments=arguments,writer=writer)
 
 for i  in range(100):
