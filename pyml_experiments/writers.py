@@ -2,6 +2,7 @@ import logging
 import sqlite3
 import mysql.connector
 import datetime
+import sys
 
 class Writer(object):
     def begin(self,arguments):
