@@ -156,6 +156,7 @@ class GenericSqlWriter(Writer):
         for k in to_add:
             logging.info("  -- adding column %s"%k)
             query="alter table experiments add column %s"%k
+            print(query)
             self._get_connection().cursor().execute(query)
 
     def _write_experiments_table(self,arguments):
