@@ -151,7 +151,6 @@ class Sqlite3Writer(Writer):
         for k in to_add:
             logging.info("  -- adding column %s"%k)
             query="alter table experiments add column %s"%k
-            print(query)
             self.db.execute(query)
 
     def _write_experiments_table(self,arguments):
@@ -234,7 +233,9 @@ class Sqlite3Writer(Writer):
             if (not k1 in columns):
                 logging.info("-- adding column in SQL Table: %s %s "%(k1,k2))
                 query="alter table logs add column '%s' %s"%(k1,k2)
+                print(query)
                 self.db.execute(query)
+                print(query)
 
     def _flush_values(self):
         if (not self._table_exists("logs")):
