@@ -1,6 +1,5 @@
 from pyml_experiments import Experiment
 from pyml_experiments.writers import StdoutWriter,Sqlite3Writer,WriterWrapper
-from pyml_experiments.readers import Sqlite3Reader
 import logging
 
 logging.basicConfig(level=logging.DEBUG)
@@ -28,11 +27,3 @@ for i  in range(100):
         log.pop_scope()
 
 log.error("Oups!")
-
-print("Trying reader...")
-read = Sqlite3Reader('test.db')
-exps = read.read_experiments()
-last_exp = max(exps.keys())
-print("Last inserted experiment was {}".format(last_exp))
-logs = read.read_log(last_exp)
-print("{} entries in logs for experiment {}".format(len(logs), last_exp))

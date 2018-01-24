@@ -1,5 +1,4 @@
 import sqlite3
-import mysql.connector
 import pandas as pd
 import numpy as np
 import logging
@@ -15,12 +14,12 @@ class Reader(object):
     def read_filtered_logs(self,filters=[],columns=[]):
         raise NotImplementedError
 
-class GenericSqlReader(Reader):
-    def __init__(self, separator="."):
+class Sqlite3Reader(Reader):
+    def __init__(self,db_file=None,separator="."):
+        logging.info("Opening Sqlite3 DB : "+db_file)
+        self.db=sqlite3.connect(db_file)
         self.sep=separator
 
-    def _get_connection(self):
-        raise NotImplementedError("GenericSqlWriter is not meant to be instantiated directly")
 
     def read_experiments(self,only_done=False):
         '''
@@ -30,8 +29,7 @@ class GenericSqlReader(Reader):
         query = "select * from experiments"
         if (only_done):
             query+=" where _state=\"done\"";
-        c = self._get_connection().cursor()
-        c.execute(query)
+        c = self.db.execute(query)
         columns = []
         for k in c.description:
             columns.append(k[0])
@@ -59,8 +57,7 @@ class GenericSqlReader(Reader):
         :return:
         '''
         query="select * from logs where _id=%d"%id_experiment
-        c = self._get_connection().cursor()
-        c.execute(query)
+        c = self.db.execute(query)
         columns = []
         for k in c.description:
             columns.append(k[0])
@@ -192,43 +189,3 @@ class GenericSqlReader(Reader):
         return pd.DataFrame(columns=iall_columns,data=retour)
 
 
-class Sqlite3Reader(GenericSqlReader):
-    def __init__(self, db_file, separator="."):
-        logging.info("Using Sqlite3 DB : " + db_file)
-        self.db_file = db_file
-        self._connection = None
-        self._is_connection_open = False
-        GenericSqlReader.__init__(self, separator)
-
-    def _get_connection(self):
-        if self._connection is None or self._is_connection_open is False:
-            self._connection = sqlite3.connect(self.db_file)
-            self._is_connection_open = True
-        return self._connection
-
-
-class MySqlReader(GenericSqlReader):
-    def __init__(self,
-                 user,
-                 password,
-                 host,
-                 database,
-                 port,
-                 separator="."):
-        logging.info("Using MySql end point : {}:{}".format(host, port))
-        self.user = user
-        self.password = password
-        self.host = host
-        self.database = database
-        self.port = port
-        self._connection = None
-        GenericSqlReader.__init__(self, separator)
-
-    def _get_connection(self):
-        if self._connection is None or self._connection.is_connected() is False:
-            self._connection = mysql.connector.connect(user=self.user,
-                                                       password=self.password,
-                                                       host=self.host,
-                                                       port=self.port,
-                                                       database=self.database)
-        return self._connection
