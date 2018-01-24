@@ -120,6 +120,8 @@ class Sqlite3Writer(Writer):
                 ty='REAL'
             elif(ty==str):
                 ty='TEXT'
+            else:
+                ty="INTEGER"
 
             keys.append("'"+k+"' "+ty)
 
@@ -145,6 +147,8 @@ class Sqlite3Writer(Writer):
                     ty = 'REAL'
                 elif (ty == str):
                     ty = 'TEXT'
+                else:
+                    ty = "INTEGER"
 
                 to_add.append("'"+k+"' "+ty)
 
@@ -204,6 +208,9 @@ class Sqlite3Writer(Writer):
                     ty = 'REAL'
                 elif (ty == str):
                     ty = 'TEXT'
+                else:
+                    ty='INTEGER'
+                    
                 kk[k]=ty
         r=[]
         for k in kk:
