@@ -113,21 +113,25 @@ class Sqlite3Writer(Writer):
 
         keys=[]
         for k in args:
-            ty=type(args[k])
-            if (ty==int):
-                ty='INTEGER'
-            elif(ty==float):
-                ty='REAL'
-            elif(ty==str):
-                ty='TEXT'
-            else:
-                ty="INTEGER"
-
-            keys.append("'"+k+"' "+ty)
+            keys.append("'" + k + "' " + self._find_sqlite_type_for_variable(args[k]))
 
         query='create table experiments (%s);'%(",".join(keys))
         self.db.execute(query)
         return keys
+
+    def _find_sqlite_type_for_variable(self, value):
+        ty = type(value)
+        if ty == int:
+            return 'INTEGER'
+        elif ty == float:
+            return'REAL'
+        elif ty == str:
+            return 'TEXT'
+        elif ty == bool:
+            return 'BOOLEAN'
+        else:
+            return "INTEGER"
+
 
     def _check_experiments_table(self,arguments):
         logging.info("== Checking experiments table...")
@@ -140,17 +144,7 @@ class Sqlite3Writer(Writer):
         to_add=[]
         for k in arguments:
             if (not k in columns):
-                ty = type(arguments[k])
-                if (ty == int):
-                    ty = 'INTEGER'
-                elif (ty == float):
-                    ty = 'REAL'
-                elif (ty == str):
-                    ty = 'TEXT'
-                else:
-                    ty = "INTEGER"
-
-                to_add.append("'"+k+"' "+ty)
+                to_add.append("'" + k + "' " + self._find_sqlite_type_for_variable(arguments[k]))
 
         for k in to_add:
             logging.info("  -- adding column %s"%k)
@@ -179,15 +173,19 @@ class Sqlite3Writer(Writer):
         args=[]
         for k in arguments:
             att.append("'"+k+"'")
-            if (type(arguments[k])==str):
-                args.append("'%s'"%arguments[k])
-            else:
-                args.append(str(arguments[k])   )
+            args.append(self._to_sqlite_value(arguments[k]))
         logging.info("Creating experiment with ID = %d"%self._id)
         query="insert into experiments(%s) values (%s)"%(",".join(att),",".join(args))
         newconn.execute(query)
         newconn.commit()
         newconn.close()
+
+    def _to_sqlite_value(self, value):
+        if type(value) == str:
+            return "'%s'"%value
+        if type(value) == bool:
+            return '1' if value else '0'
+        return str(value)
 
     def begin(self,arguments):
         #1: Check if tables exists
@@ -201,17 +199,7 @@ class Sqlite3Writer(Writer):
         kk={}
         for v in self._values:
             for k in v:
-                ty = type(v[k])
-                if (ty == int):
-                    ty = 'INTEGER'
-                elif (ty == float):
-                    ty = 'REAL'
-                elif (ty == str):
-                    ty = 'TEXT'
-                else:
-                    ty='INTEGER'
-                    
-                kk[k]=ty
+                kk[k] = self._find_sqlite_type_for_variable(v[k])
         r=[]
         for k in kk:
             r.append((k,kk[k]))
@@ -253,10 +241,7 @@ class Sqlite3Writer(Writer):
             keys = []
             vals=[]
             for k in v:
-                val=v[k]
-                if (type(val)==str):
-                    val="'%s'"%val
-                vals.append(str(val))
+                vals.append(self._to_sqlite_value(v[k]))
                 keys.append("'%s'"%k)
             vals.append(str(self._id))
             keys.append("_id")
