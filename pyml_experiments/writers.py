@@ -119,7 +119,8 @@ class Sqlite3Writer(Writer):
         self.db.execute(query)
         return keys
 
-    def _find_sqlite_type_for_variable(self, value):
+    @staticmethod
+    def _find_sqlite_type_for_variable(value):
         ty = type(value)
         if ty == int:
             return 'INTEGER'
@@ -180,7 +181,8 @@ class Sqlite3Writer(Writer):
         newconn.commit()
         newconn.close()
 
-    def _to_sqlite_value(self, value):
+    @staticmethod
+    def _to_sqlite_value(value):
         if type(value) == str:
             return "'%s'"%value
         if type(value) == bool:
