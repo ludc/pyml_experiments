@@ -1,4 +1,5 @@
 import datetime
+import writers
 
 class Experiment(object):
 
@@ -13,6 +14,8 @@ class Experiment(object):
         self.values={}
         self.current_scope=[]
 
+        if writer is None:
+            writer = writers.StdoutWriter()
         self.writer=writer
         self.writer.begin(arguments=arguments)
 
@@ -55,4 +58,9 @@ class Experiment(object):
         self.writer.exit()
 
 
+    def __enter__(self, arguments={}, writer=None):
+        return self
+
+    def __exit__(self, type, value, traceback):
+        self.__del__()
 
