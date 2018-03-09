@@ -1,5 +1,5 @@
 import datetime
-import writers
+from pyml_experiments import writers
 
 class Experiment(object):
 
