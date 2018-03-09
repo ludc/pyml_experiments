@@ -183,6 +183,8 @@ class Sqlite3Writer(Writer):
 
     @staticmethod
     def _to_sqlite_value(value):
+        if value == None:
+            return "null"
         if type(value) == str:
             return "'%s'"%value
         if type(value) == bool:
