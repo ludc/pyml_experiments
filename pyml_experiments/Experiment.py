@@ -58,4 +58,9 @@ class Experiment(object):
         self.writer.exit()
 
 
+    def __enter__(self, arguments={}, writer=None):
+        return self
+
+    def __exit__(self, type, value, traceback):
+        self.__del__()
 
