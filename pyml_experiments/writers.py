@@ -90,7 +90,7 @@ class Sqlite3Writer(Writer):
                 for kk in f:
                     retour[k+separator+kk]=f[kk]
             elif(type(values[k])==list):
-                retour[k]="\\n".join(values[k])
+                retour[k]="\\n".join(list(map(str, values[k])))
             else:
                 retour[k]=values[k]
         return retour
