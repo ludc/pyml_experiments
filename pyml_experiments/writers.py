@@ -2,6 +2,7 @@ import logging
 import sqlite3
 import datetime
 import sys
+import numpy as np
 
 class Writer(object):
     def begin(self,arguments):
@@ -27,6 +28,54 @@ class Writer(object):
                 r[k]=dic[k]
         return r
 
+class VisdomWriter(object):
+    def __init__(self):
+        import visdom
+        self.line_plots_names=[]
+        self.line_plots_options=[]
+        self.line_plots_windows=[]
+        self.vis=visdom.Visdom()
+        self.iteration=0
+    
+    def line_plot(self,names,options={}):
+        '''
+        Track these variables names in a line drawing
+        '''
+        self.line_plots_names.append(names)
+        self.line_plots_windows.append(None)
+        self.line_plots_options.append(options)
+    def begin(self,arguments):
+        print(arguments)
+
+    def write(self,values):
+        self.iteration+=1
+        #line plots        
+        for i in range(len(self.line_plots_names)):            
+            n=self.line_plots_names[i]
+            v=self.line_plots_windows[i]
+            data=[]
+            for nn in n:
+                data.append(float(self._get_in_dict(nn,values)))
+            data=np.array([data])
+            print(data.ndim)
+            if(self.line_plots_windows[i] is None):
+                self.line_plots_windows[i]=self.vis.line(data) #,self.line_plots_options[i])
+            else:
+
+                print(self.line_plots_windows[i])
+                self.vis.line(data,win=self.line_plots_windows[i],update="append",X=np.array([self.iteration]))
+
+    def exit(self):
+        raise NotImplementedError
+
+    def error(self,msg):
+        raise NotImplementedError
+
+    def _get_in_dict(self,name,d):
+        n=name.split('.')
+        for nn in n:
+            d=d[nn]
+        return d
 
 class WriterWrapper(object):
     def __init__(self, *writers):
