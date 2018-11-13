@@ -3,6 +3,9 @@ import sqlite3
 import datetime
 import sys
 import numpy as np
+import fcntl
+import pickle
+
 
 class Writer(object):
     def begin(self,arguments):
@@ -99,6 +102,108 @@ class WriterWrapper(object):
     def error(self, msg):
         for writer in self.writers:
             writer.error(msg)
+
+class PickleWriter(Writer):
+    '''
+    Write bunch of pickles in the file
+    '''
+    def __init__(self,filename,cache_size=100):
+        Writer.__init__(self)
+        import uuid
+        self.filename=filename
+        self.cache_size=cache_size
+        self.stack=[]
+        self.uuid=str(uuid.uuid4())
+        self._iteration=0
+
+    def begin(self,arguments):
+        self.arguments=arguments
+        with open(self.filename, "ab") as g:
+            fcntl.flock(g, fcntl.LOCK_EX)
+            pickle.dump({"id":self.uuid,"arguments":arguments},g)
+            fcntl.flock(g, fcntl.LOCK_UN)        
+
+    def _clear_stack(self):
+        with open(self.filename, "ab") as g:
+            fcntl.flock(g, fcntl.LOCK_EX)
+            aaa=[]
+            for a in self.stack:
+                aaa.append({"id":self.uuid,"_iteration":self._iteration,"values":a})
+                self._iteration+=1
+            pickle.dump(aaa,g)
+            fcntl.flock(g, fcntl.LOCK_UN)
+        self.stack=[]
+
+    def write(self,values):
+        self.stack.append(values)
+        if (len(self.stack)>=self.cache_size):
+            self._clear_stack()
+    
+    def exit(self):
+        self._clear_stack()
+        with open(self.filename, "ab") as g:
+            fcntl.flock(g, fcntl.LOCK_EX)
+            pickle.dump({"id":self.uuid,"finished":True},g)
+            fcntl.flock(g, fcntl.LOCK_UN)
+        pass
+
+    def error(self,msg):
+        with open(self.filename, "ab") as g:
+            fcntl.flock(g, fcntl.LOCK_EX)
+            pickle.dump({"id":self.uuid,"error":msg},g)
+            fcntl.flock(g, fcntl.LOCK_UN)
+
+
+
+
+class DictionnaryTXTWriter(Writer):
+    '''
+    Write the log in an understandable format..... Have a look !
+    '''
+    def __init__(self,filename,cache_size=100):
+        Writer.__init__(self)
+        import uuid
+        self.filename=filename
+        self.cache_size=cache_size
+        self.stack=[]
+        self.uuid=str(uuid.uuid4())
+        self._iteration=0
+
+    def begin(self,arguments):
+        self.arguments=arguments
+        with open(self.filename, "at") as g:
+            fcntl.flock(g, fcntl.LOCK_EX)
+            g.write(str({"id":self.uuid,"arguments":arguments})+"\n")
+            fcntl.flock(g, fcntl.LOCK_UN)        
+
+    def _clear_stack(self):
+        with open(self.filename, "at") as g:
+            fcntl.flock(g, fcntl.LOCK_EX)
+            for a in self.stack:
+                aa={"id":self.uuid,"_iteration":self._iteration,"values":a}
+                self._iteration+=1
+                g.write(str(aa)+"\n")
+            fcntl.flock(g, fcntl.LOCK_UN)
+        self.stack=[]
+
+    def write(self,values):
+        self.stack.append(values)
+        if (len(self.stack)>=self.cache_size):
+            self._clear_stack()
+    
+    def exit(self):
+        self._clear_stack()
+        with open(self.filename, "at") as g:
+            fcntl.flock(g, fcntl.LOCK_EX)
+            g.write(str({"id":self.uuid,"finished":True})+"\n")
+            fcntl.flock(g, fcntl.LOCK_UN)
+        pass
+
+    def error(self,msg):
+        with open(self.filename, "at") as g:
+            fcntl.flock(g, fcntl.LOCK_EX)
+            g.write(str({"id":self.uuid,"error":msg})+"\n")
+            fcntl.flock(g, fcntl.LOCK_UN)
 
 
 class StdoutWriter(Writer):
