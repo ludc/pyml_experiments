@@ -148,6 +148,26 @@ class PickleLogVisualizer(object):
     def get_column_names(self):
         return self.columns_names_and_types
 
+    def get_arguments_name(self,id,fields_to_keep=None):
+        db=sqlite3.connect(self.db_file)
+        query="select * from "+self.tbl_name+" where id=\""+str(id)+"\""
+        cursor=db.execute(query)
+        names = list(map(lambda x: x[0], cursor.description))
+        row=cursor.fetchone()
+        n=[]
+        for i in range(len(row)):
+            if (names[i].startswith("arguments_")):
+                if (not fields_to_keep is None):
+                    if (names[i] in fields_to_keep):
+                        nn=names[i][len('arguments_'):]
+                        n.append(nn+"="+str(row[i]))
+                else:
+                    nn=names[i][len('arguments_'):]
+                    n.append(nn+"="+str(row[i]))
+
+        return " ".join(n)
+
+
     def get_distinct_values(self,cn):
         query="select distinct("+cn+") from "+self.tbl_name+";"
         db=sqlite3.connect(self.db_file)
