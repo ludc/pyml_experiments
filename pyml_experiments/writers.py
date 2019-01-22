@@ -119,13 +119,13 @@ class PickleWriter(Writer):
     def begin(self,arguments):
         self.arguments=arguments
         with open(self.filename, "ab") as g:
-            fcntl.flock(g, fcntl.LOCK_EX)
+            fcntl.flock(g, fcntl.LOCK_EX |fcntl.LOCK_NB)
             pickle.dump({"id":self.uuid,"arguments":arguments},g)
             fcntl.flock(g, fcntl.LOCK_UN)        
 
     def _clear_stack(self):
         with open(self.filename, "ab") as g:
-            fcntl.flock(g, fcntl.LOCK_EX)
+            fcntl.flock(g, fcntl.LOCK_EX |fcntl.LOCK_NB)
             aaa=[]
             for a in self.stack:
                 aaa.append({"id":self.uuid,"_iteration":self._iteration,"values":a})
@@ -142,14 +142,14 @@ class PickleWriter(Writer):
     def exit(self):
         self._clear_stack()
         with open(self.filename, "ab") as g:
-            fcntl.flock(g, fcntl.LOCK_EX)
+            fcntl.flock(g, fcntl.LOCK_EX |fcntl.LOCK_NB)
             pickle.dump({"id":self.uuid,"finished":True},g)
             fcntl.flock(g, fcntl.LOCK_UN)
         pass
 
     def error(self,msg):
         with open(self.filename, "ab") as g:
-            fcntl.flock(g, fcntl.LOCK_EX)
+            fcntl.flock(g, fcntl.LOCK_EX |fcntl.LOCK_NB)
             pickle.dump({"id":self.uuid,"error":msg},g)
             fcntl.flock(g, fcntl.LOCK_UN)
 
@@ -172,13 +172,13 @@ class DictionnaryTXTWriter(Writer):
     def begin(self,arguments):
         self.arguments=arguments
         with open(self.filename, "at") as g:
-            fcntl.flock(g, fcntl.LOCK_EX)
+            fcntl.flock(g, fcntl.LOCK_EX |fcntl.LOCK_NB)
             g.write(str({"id":self.uuid,"arguments":arguments})+"\n")
             fcntl.flock(g, fcntl.LOCK_UN)        
 
     def _clear_stack(self):
         with open(self.filename, "at") as g:
-            fcntl.flock(g, fcntl.LOCK_EX)
+            fcntl.flock(g, fcntl.LOCK_EX |fcntl.LOCK_NB)
             for a in self.stack:
                 aa={"id":self.uuid,"_iteration":self._iteration,"values":a}
                 self._iteration+=1
@@ -194,14 +194,14 @@ class DictionnaryTXTWriter(Writer):
     def exit(self):
         self._clear_stack()
         with open(self.filename, "at") as g:
-            fcntl.flock(g, fcntl.LOCK_EX)
+            fcntl.flock(g, fcntl.LOCK_EX |fcntl.LOCK_NB)
             g.write(str({"id":self.uuid,"finished":True})+"\n")
             fcntl.flock(g, fcntl.LOCK_UN)
         pass
 
     def error(self,msg):
         with open(self.filename, "at") as g:
-            fcntl.flock(g, fcntl.LOCK_EX)
+            fcntl.flock(g, fcntl.LOCK_EX |fcntl.LOCK_NB)
             g.write(str({"id":self.uuid,"error":msg})+"\n")
             fcntl.flock(g, fcntl.LOCK_UN)
 
