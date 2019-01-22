@@ -107,7 +107,7 @@ class PickleWriter(Writer):
     '''
     Write bunch of pickles in the file
     '''
-    def __init__(self,filename,cache_size=100):
+    def __init__(self,filename,cache_size=10000):
         Writer.__init__(self)
         import uuid
         self.filename=filename
@@ -125,6 +125,7 @@ class PickleWriter(Writer):
 
     def _clear_stack(self):
         with open(self.filename, "ab") as g:
+            print("wrinting")
             fcntl.flock(g, fcntl.LOCK_EX)
             aaa=[]
             for a in self.stack:
